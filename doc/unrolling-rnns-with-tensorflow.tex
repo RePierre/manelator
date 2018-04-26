@@ -1,0 +1,37 @@
+\documentclass{beamer}
+% \usetheme{metropolis}
+\usepackage{graphicx}
+\defbeamertemplate*{title page}{customized}[1][]
+{
+  \usebeamercolor[fg]{titlegraphic}\inserttitlegraphic
+  \begin{center}
+    \usebeamerfont{title}\inserttitle\par
+    \usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par
+    \bigskip
+    \usebeamerfont{author}\insertauthor\par
+    \usebeamerfont{institute}\insertinstitute\par
+    \usebeamerfont{date}\insertdate\par
+  \end{center}
+}
+
+\title{Unrolling Recurrent Neural Networks}
+\subtitle{A case study with Tensorflow}
+\author{Petru Rebeja}
+\titlegraphic{
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{../img/iasi-ai-logo.png}
+  \end{center}
+}
+% \logo{\includegraphics[height=1.5cm]{../img/iasi-ai-logo.png}}
+\begin{document}
+\maketitle
+\begin{frame}[allowframebreaks]
+  \frametitle{References}
+  \bibliographystyle{amsalpha}
+  \bibliography{unrolling-rnns-with-tensorflow}
+\end{frame}
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
