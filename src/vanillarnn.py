@@ -21,6 +21,31 @@ class Encoding:
         return "".join([self._int_to_char[i] for i in sequence])
 
 
+class VanillaRNN:
+    """
+    A simple implementation of Recurrent Neural Network.
+    """
+
+    def __init__(self, vocabulary_size, hidden_size, sequence_length):
+        self._vocab_size = vocabylary_size
+        self._hidden_size = hidden_size
+        self._sequence_length = sequence_length
+
+        self._initialize_model_parameters()
+
+    def _initialize_model_parameters(self):
+        # Input to hidden parameters
+        self._Wxh = np.random.randn(self._hidden_size, self._vocab_size) * .01
+        # Hidden to hidden parameters
+        self._Whh = np.random.randn(self._hidden_size, self._hidden_size) * .01
+        # Hidden to output parameters
+        self._Why = np.random.randn(self._vocab_size, self._hidden_size) * .01
+        # Hidden bias
+        self._bh = np.zeros((self._hidden_size, 1))
+        # Output bias
+        self._by = np.zeros((self._vocab_size, 1))
+
+
 def read_data(input_file):
     data = open(input_file).read()
     return data
