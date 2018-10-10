@@ -33,6 +33,15 @@ class VanillaRNN:
         self._sequence_length = sequence_length
 
         self._initialize_model_parameters()
+        self._initialize_model_memory()
+        self._smooth_loss = -np.log(1.0/self._vocab_size)*self._sequence_length
+
+    def _initialize_model_memory(self):
+        self._mWxh = np.zeros_like(self._Wxh)
+        self._mWhh = np.zeros_like(self._Whh)
+        self._mWhy=np.zeros_like(self._Why)
+        self._mbh = np.zeros_like(self._bh)
+        self._mby = np.zeros_like(self._by)
 
     def _initialize_model_parameters(self):
         # Input to hidden parameters
