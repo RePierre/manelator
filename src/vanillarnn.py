@@ -27,19 +27,22 @@ class VanillaRNN:
     A simple implementation of Recurrent Neural Network.
     """
 
-    def __init__(self, vocabulary_size, hidden_size, sequence_length):
+    def __init__(self, vocabulary_size, hidden_size, sequence_length, encoding):
         self._vocab_size = vocabylary_size
         self._hidden_size = hidden_size
         self._sequence_length = sequence_length
+        self._encoding = encoding
 
         self._initialize_model_parameters()
         self._initialize_model_memory()
-        self._smooth_loss = -np.log(1.0/self._vocab_size)*self._sequence_length
+
+        self._smooth_loss = -np.log(1.0 / self._vocab_size) * self._sequence_length
+        self._hidden = np.zeros((self._hidden_size, 1))
 
     def _initialize_model_memory(self):
         self._mWxh = np.zeros_like(self._Wxh)
         self._mWhh = np.zeros_like(self._Whh)
-        self._mWhy=np.zeros_like(self._Why)
+        self._mWhy = np.zeros_like(self._Why)
         self._mbh = np.zeros_like(self._bh)
         self._mby = np.zeros_like(self._by)
 
@@ -54,6 +57,20 @@ class VanillaRNN:
         self._bh = np.zeros((self._hidden_size, 1))
         # Output bias
         self._by = np.zeros((self._vocab_size, 1))
+
+    def _sample(self, seed_char, sample_size):
+        return 0
+
+    def fit(self, data, num_epochs=500, sample_interval=100, sample_size=200):
+        p = 0
+        for epoch in range(num_epochs):
+            if p + self._sequence_length + 1 >= len(data):
+                continue
+            inputs = self._encoding.encode(data[p:p + self._sequence_length])
+            labels = self._encoding.encode(data[p + 1:p + self._sequence_length + 1:])
+            if epoch % sample_interval == 0:
+                sample = self._sample(inputs[0], sample_size)
+                print('-----\n{}\n-----'.format(self._encoding.decode(sample)))
 
 
 def read_data(input_file):
