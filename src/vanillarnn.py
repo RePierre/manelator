@@ -61,16 +61,26 @@ class VanillaRNN:
     def _sample(self, seed_char, sample_size):
         return 0
 
+    def _apply_loss_function(self, inputs, targets):
+        hprev = self._hidden
+        loss = 0
+        self._smooth_loss = self._smooth_loss * .999 + loss * .001
+
     def fit(self, data, num_epochs=500, sample_interval=100, sample_size=200):
-        p = 0
         for epoch in range(num_epochs):
-            if p + self._sequence_length + 1 >= len(data):
-                continue
-            inputs = self._encoding.encode(data[p:p + self._sequence_length])
-            labels = self._encoding.encode(data[p + 1:p + self._sequence_length + 1:])
+            self._hidden = np.zeros((self._hidden_size, 1))
+            p = 0
+            while p + self._sequence_length + 1 < len(data):
+                inputs = self._encoding.encode(data[p:p + self._sequence_length])
+                labels = self._encoding.encode(data[p + 1:p + self._sequence_length + 1:])
+                dWxh, dWhh, dWhy dbh, dby, hprev = self._apply_loss_function(inputs, targets)
+                self._update_parameters(dWxh, dWhh, dWhy, dbh, dby)
+                p += self._sequence_length
+
             if epoch % sample_interval == 0:
                 sample = self._sample(inputs[0], sample_size)
                 print('-----\n{}\n-----'.format(self._encoding.decode(sample)))
+            print('Epoch {}, loss: {}'.format(epoch, self._smooth_loss))
 
 
 def read_data(input_file):
