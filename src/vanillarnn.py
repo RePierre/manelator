@@ -75,9 +75,43 @@ class VanillaRNN:
         return indices
 
     def _apply_loss_function(self, inputs, targets):
-        hprev = self._hidden
+        xs, hs, ys, ps = {}, {}, {}, {}
+        hs[-1] = np.copy(self._hidden)
         loss = 0
+        # Forward pass
+        for t in range(len(inputs)):
+            xs[t] = np.zeros((self._vocab_size, 1))
+            xs[t][inputs[t]] = 1
+            # Hidden state
+            hs[t] = np.tanh(np.dot(self._Wxh, xs[t]) + np.dot(self._Whh, hs[t - 1]) + self._bh)
+            # Unnormalized log probabilities for next chars
+            ys[t] = np.dot(self._Why, hs[t]) + self._by
+            # Probabilities for next chars
+            ps = np.exp(ys[t]) / np.sum(np.exp(ys[t]))
+            # Cross-entropy loss
+            loss += np.log(ps[t][targets[t], 0])
         self._smooth_loss = self._smooth_loss * .999 + loss * .001
+        # Backward pass
+        dWxh, dWhh, dWhy = np.zeros_like(self._Wxh), np.zeros_like(self._Whh), np.zeros_like(self._Why)
+        dbh, dby = np.zeros_like(self._bh), np.zeros_like(self._by)
+        dhnext = np.zeros_like(hs[0])
+        for t in reversed(range(len(inputs))):
+            dy = np.copy(ps[t])
+            dy[targets[t]] = -1
+            dWhy += np.dot(dy, hs[t].T)
+            dby += dy
+            #  Backpropagate into h
+            dh = np.dot(self._Why.T, dy)
+            # Backpropagate through tanh
+            dhraw = (1 - hs[t] * hs[t]) * dh
+            dhb += dhraw
+            dWxh += np.dot(dhraw, xs[t].T)
+            dWhh += np.dot(dhraw, xs[t - 1].T)
+            dhnext = np.dot(self._Whh.T, dhraw)
+        # Apply clipping to mitigate exploding gradients
+        for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
+            np.clip(dparam, -5, 5, out=dparam)
+        return dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
 
     def fit(self, data, num_epochs=500, sample_interval=100, sample_size=200):
         for epoch in range(num_epochs):
