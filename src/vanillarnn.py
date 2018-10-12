@@ -58,8 +58,21 @@ class VanillaRNN:
         # Output bias
         self._by = np.zeros((self._vocab_size, 1))
 
-    def _sample(self, seed_char, sample_size):
-        return 0
+    def _sample(self, seed_index, sample_size):
+        x = np.zeros((self._vocab_size, 1))
+        x[seed_index] = 1
+        indices = []
+        h = self._hidden
+        for t in range(sampel_size):
+            h = np.tanh(np.dot(self._Wxh, x) + np.dot(self._Whh, h) + self._bh)
+            y = np.dot(self._Why, h) + self._by
+            p = np.exp(y) / np.sum(np.exp(y))
+            ix = np.random.choice(range(self._vocab_size), p=p.ravel())
+            x = np.zeros((self._vocab_size, 1))
+            x[ix] = 1
+            indices.append(ix)
+
+        return indices
 
     def _apply_loss_function(self, inputs, targets):
         hprev = self._hidden
