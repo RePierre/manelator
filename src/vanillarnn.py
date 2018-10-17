@@ -28,7 +28,7 @@ class VanillaRNN:
     """
 
     def __init__(self, vocabulary_size, hidden_size, sequence_length, encoding):
-        self._vocab_size = vocabylary_size
+        self._vocab_size = vocabulary_size
         self._hidden_size = hidden_size
         self._sequence_length = sequence_length
         self._encoding = encoding
@@ -63,7 +63,7 @@ class VanillaRNN:
         x[seed_index] = 1
         indices = []
         h = self._hidden
-        for t in range(sampel_size):
+        for t in range(sample_size):
             h = np.tanh(np.dot(self._Wxh, x) + np.dot(self._Whh, h) + self._bh)
             y = np.dot(self._Why, h) + self._by
             p = np.exp(y) / np.sum(np.exp(y))
@@ -87,9 +87,9 @@ class VanillaRNN:
             # Unnormalized log probabilities for next chars
             ys[t] = np.dot(self._Why, hs[t]) + self._by
             # Probabilities for next chars
-            ps = np.exp(ys[t]) / np.sum(np.exp(ys[t]))
+            ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t]))
             # Cross-entropy loss
-            loss += np.log(ps[t][targets[t], 0])
+            loss += -np.log(ps[t][targets[t], 0])
         self._smooth_loss = self._smooth_loss * .999 + loss * .001
         # Backward pass
         dWxh, dWhh, dWhy = np.zeros_like(self._Wxh), np.zeros_like(self._Whh), np.zeros_like(self._Why)
@@ -104,14 +104,17 @@ class VanillaRNN:
             dh = np.dot(self._Why.T, dy)
             # Backpropagate through tanh
             dhraw = (1 - hs[t] * hs[t]) * dh
-            dhb += dhraw
+            dbh += dhraw
             dWxh += np.dot(dhraw, xs[t].T)
-            dWhh += np.dot(dhraw, xs[t - 1].T)
+            dWhh += np.dot(dhraw, hs[t - 1].T)
             dhnext = np.dot(self._Whh.T, dhraw)
         # Apply clipping to mitigate exploding gradients
         for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
             np.clip(dparam, -5, 5, out=dparam)
         return dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
+
+    def _update_parameters(self, dWxh, dWhh, dWhy, dbh, dby):
+        return
 
     def fit(self, data, num_epochs=500, sample_interval=100, sample_size=200):
         for epoch in range(num_epochs):
@@ -120,7 +123,7 @@ class VanillaRNN:
             while p + self._sequence_length + 1 < len(data):
                 inputs = self._encoding.encode(data[p:p + self._sequence_length])
                 labels = self._encoding.encode(data[p + 1:p + self._sequence_length + 1:])
-                dWxh, dWhh, dWhy dbh, dby, hprev = self._apply_loss_function(inputs, targets)
+                dWxh, dWhh, dWhy, dbh, dby, hprev = self._apply_loss_function(inputs, labels)
                 self._update_parameters(dWxh, dWhh, dWhy, dbh, dby)
                 p += self._sequence_length
 
@@ -141,7 +144,8 @@ def run(args):
     data_size, vocab_size = len(data), len(chars)
     print("Data has {} characters; {} unique.".format(data_size, vocab_size))
     e = Encoding(chars)
-    print(e.decode(e.encode('manelator')))
+    model = VanillaRNN(vocab_size, args.hidden_size, args.sequence_length, e)
+    model.fit(data)
 
 
 def parse_arguments():
