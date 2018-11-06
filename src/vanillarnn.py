@@ -27,10 +27,12 @@ class VanillaRNN:
     A simple implementation of Recurrent Neural Network.
     """
 
-    def __init__(self, vocabulary_size, hidden_size, sequence_length, encoding):
+    def __init__(self, vocabulary_size, hidden_size,
+                 sequence_length, learning_rate, encoding):
         self._vocab_size = vocabulary_size
         self._hidden_size = hidden_size
         self._sequence_length = sequence_length
+        self._learning_rate = learning_rate
         self._encoding = encoding
 
         self._initialize_model_parameters()
@@ -101,7 +103,7 @@ class VanillaRNN:
             dWhy += np.dot(dy, hs[t].T)
             dby += dy
             #  Backpropagate into h
-            dh = np.dot(self._Why.T, dy)
+            dh = np.dot(self._Why.T, dy) + dhnext
             # Backpropagate through tanh
             dhraw = (1 - hs[t] * hs[t]) * dh
             dbh += dhraw
@@ -113,8 +115,13 @@ class VanillaRNN:
             np.clip(dparam, -5, 5, out=dparam)
         return dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
 
-    def _update_parameters(self, dWxh, dWhh, dWhy, dbh, dby):
-        return
+    def _update_parameters(self, dWxh, dWhh, dWhy, dbh, dby, hprev):
+        for param, dparam, mem in zip([self._Wxh, self._Whh, self._Why, self._bh, self._by],
+                                      [dWxh, dWhh, dWhy, dbh, dby],
+                                      [self._mWxh, self._mWhh, self._mWhy, self._mbh, self._mby]):
+            mem += dparam * dparam
+            param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
+        self._hidden = hprev
 
     def fit(self, data, num_epochs=500, sample_interval=100, sample_size=200):
         for epoch in range(num_epochs):
@@ -124,7 +131,7 @@ class VanillaRNN:
                 inputs = self._encoding.encode(data[p:p + self._sequence_length])
                 labels = self._encoding.encode(data[p + 1:p + self._sequence_length + 1:])
                 dWxh, dWhh, dWhy, dbh, dby, hprev = self._apply_loss_function(inputs, labels)
-                self._update_parameters(dWxh, dWhh, dWhy, dbh, dby)
+                self._update_parameters(dWxh, dWhh, dWhy, dbh, dby, hprev)
                 p += self._sequence_length
 
             if epoch % sample_interval == 0:
@@ -144,7 +151,7 @@ def run(args):
     data_size, vocab_size = len(data), len(chars)
     print("Data has {} characters; {} unique.".format(data_size, vocab_size))
     e = Encoding(chars)
-    model = VanillaRNN(vocab_size, args.hidden_size, args.sequence_length, e)
+    model = VanillaRNN(vocab_size, args.hidden_size, args.sequence_length, args.learning_rate, e)
     model.fit(data)
 
 
