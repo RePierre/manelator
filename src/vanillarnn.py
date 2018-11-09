@@ -24,12 +24,22 @@ class VanillaRNN:
         self._sequence_length = sequence_length
         self._learning_rate = learning_rate
 
-        # model parameters
-        self._Wxh = np.random.randn(hidden_size, vocab_size) * 0.01  # input to hidden
-        self._Whh = np.random.randn(hidden_size, hidden_size) * 0.01  # hidden to hidden
-        self._Why = np.random.randn(vocab_size, hidden_size) * 0.01  # hidden to output
-        self._bh = np.zeros((hidden_size, 1))  # hidden bias
-        self._by = np.zeros((vocab_size, 1))  # output bias
+    def _initialize_model_parameters(self, vocab_size):
+        """
+        Initializes model parameters.
+        Weight matrices are initialized to small random values;
+        bias vectors are initialized to zeros.
+        """
+        # Input to hidden matrix
+        self._Wxh = np.random.randn(self._hidden_size, vocab_size) * 0.01
+        # Hidden to hidden matrix
+        self._Whh = np.random.randn(self._hidden_size, self._hidden_size) * 0.01
+        # Hidden to output matrix
+        self._Why = np.random.randn(vocab_size, self._hidden_size) * 0.01
+        # Hidden layer bias
+        self._bh = np.zeros((self._hidden_size, 1))
+        # Output layer bias
+        self._by = np.zeros((vocab_size, 1))
 
     def _apply_loss_function(self, inputs, targets, hprev):
         """
@@ -101,6 +111,7 @@ class VanillaRNN:
 
     def fit(self):
         n, p = 0, 0
+        self._initialize_model_parameters(vocab_size)
         mWxh, mWhh, mWhy = np.zeros_like(self._Wxh),\
             np.zeros_like(self._Whh),\
             np.zeros_like(self._Why)
