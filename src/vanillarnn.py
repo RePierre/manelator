@@ -31,7 +31,7 @@ class VanillaRNN:
         self._bh = np.zeros((hidden_size, 1))  # hidden bias
         self._by = np.zeros((vocab_size, 1))  # output bias
 
-    def lossFun(self, inputs, targets, hprev):
+    def _apply_loss_function(self, inputs, targets, hprev):
         """
         inputs,targets are both list of integers.
         hprev is Hx1 array of initial hidden state
@@ -67,9 +67,9 @@ class VanillaRNN:
             np.clip(dparam, -5, 5, out=dparam)  # clip to mitigate exploding gradients
         return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
 
-    def sample(self, h, seed_ix, n):
+    def _sample_text(self, h, seed_ix, n):
         """
-        sample a sequence of integers from the model
+        Sample a sequence of integers from the model
         h is memory state, seed_ix is seed letter for first time step
         """
         x = np.zeros((vocab_size, 1))
@@ -84,6 +84,20 @@ class VanillaRNN:
             x[ix] = 1
             ixes.append(ix)
         return ixes
+
+    def _update_model_parameters(self,
+                                 dWxh, dWhh, dWhy, dbh, dby,
+                                 mWxh, mWhh, mWhy, mbh, mby):
+        """
+        Perform  Adagrad update of model parameters.
+        """
+        # perform parameter update with Adagrad
+        for param, dparam, mem in zip([self._Wxh, self._Whh, self._Why, self._bh, self._by],
+                                      [dWxh, dWhh, dWhy, dbh, dby],
+                                      [mWxh, mWhh, mWhy, mbh, mby]):
+            mem += dparam * dparam
+            # Adagrad update
+            param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
 
     def fit(self):
         n, p = 0, 0
@@ -104,22 +118,19 @@ class VanillaRNN:
 
             # sample from the model now and then
             if n % 100 == 0:
-                sample_ix = self.sample(hprev, inputs[0], 200)
+                sample_ix = self._sample_text(hprev, inputs[0], 200)
                 txt = ''.join(ix_to_char[ix] for ix in sample_ix)
                 print('----\n {} \n----'.format(txt))
 
             # forward seq_length characters through the net and fetch gradient
-            loss, dWxh, dWhh, dWhy, dbh, dby, hprev = self.lossFun(inputs, targets, hprev)
+            loss, dWxh, dWhh, dWhy, dbh, dby, hprev = self._apply_loss_function(inputs, targets, hprev)
             smooth_loss = smooth_loss * 0.999 + loss * 0.001
+            # Print progress
             if n % 100 == 0:
-                print('iter {}, loss: {}'.format(n, smooth_loss))  # print progress
+                print('iter {}, loss: {}'.format(n, smooth_loss))
 
-            # perform parameter update with Adagrad
-            for param, dparam, mem in zip([self._Wxh, self._Whh, self._Why, self._bh, self._by],
-                                          [dWxh, dWhh, dWhy, dbh, dby],
-                                          [mWxh, mWhh, mWhy, mbh, mby]):
-                mem += dparam * dparam
-                param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)  # adagrad update
+            self._update_model_parameters(dWxh, dWhh, dWhy, dbh, dby,
+                                          mWxh, mWhh, mWhy, mbh, mby)
 
             p += self._sequence_length  # move data pointer
             n += 1  # iteration counter
