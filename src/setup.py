@@ -8,11 +8,8 @@ install_requires = [
 ]
 
 dev_requires = [
-    "autopep8",
-    "rope_py3k",
-    "jedi",
-    "importmagic",
-    "yapf"
+    'autopep8'
+    'python-language-server[all]'
 ]
 
 tests_requires = [
