@@ -41,6 +41,18 @@ class VanillaRNN:
         # Output layer bias
         self._by = np.zeros((vocab_size, 1))
 
+    def _initialize_model_memory(self):
+        """
+        Initializes model memory.
+        Memory structures have the same shape as model parameters
+        but are initialized to zeros.
+        """
+        self._mWxh = np.zeros_like(self._Wxh)
+        self._mWhh = np.zeros_like(self._Whh)
+        self._mWhy = np.zeros_like(self._Why)
+        self._mbh = np.zeros_like(self._bh)
+        self._mby = np.zeros_like(self._by)
+
     def _apply_loss_function(self, inputs, targets, hprev):
         """
         inputs,targets are both list of integers.
@@ -95,16 +107,13 @@ class VanillaRNN:
             ixes.append(ix)
         return ixes
 
-    def _update_model_parameters(self,
-                                 dWxh, dWhh, dWhy, dbh, dby,
-                                 mWxh, mWhh, mWhy, mbh, mby):
+    def _update_model_parameters(self, dWxh, dWhh, dWhy, dbh, dby):
         """
         Perform  Adagrad update of model parameters.
         """
-        # perform parameter update with Adagrad
         for param, dparam, mem in zip([self._Wxh, self._Whh, self._Why, self._bh, self._by],
                                       [dWxh, dWhh, dWhy, dbh, dby],
-                                      [mWxh, mWhh, mWhy, mbh, mby]):
+                                      [self._mWxh, self._mWhh, self._mWhy, self._mbh, self._mby]):
             mem += dparam * dparam
             # Adagrad update
             param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
@@ -112,11 +121,7 @@ class VanillaRNN:
     def fit(self):
         n, p = 0, 0
         self._initialize_model_parameters(vocab_size)
-        mWxh, mWhh, mWhy = np.zeros_like(self._Wxh),\
-            np.zeros_like(self._Whh),\
-            np.zeros_like(self._Why)
-        # memory variables for Adagrad
-        mbh, mby = np.zeros_like(self._bh), np.zeros_like(self._by)
+        self._initialize_model_memory()
         # loss at iteration 0
         smooth_loss = -np.log(1.0 / vocab_size) * self._sequence_length
         while True:
@@ -140,8 +145,7 @@ class VanillaRNN:
             if n % 100 == 0:
                 print('iter {}, loss: {}'.format(n, smooth_loss))
 
-            self._update_model_parameters(dWxh, dWhh, dWhy, dbh, dby,
-                                          mWxh, mWhh, mWhy, mbh, mby)
+            self._update_model_parameters(dWxh, dWhh, dWhy, dbh, dby)
 
             p += self._sequence_length  # move data pointer
             n += 1  # iteration counter
