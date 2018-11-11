@@ -89,15 +89,15 @@ class VanillaRNN:
             np.clip(dparam, -5, 5, out=dparam)  # clip to mitigate exploding gradients
         return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
 
-    def _sample_sequence(self, h, seed_ix, n):
+    def _sample_sequence(self, h, seed_ix, length):
         """
-        Sample a sequence of integers from the model
+        Sample a sequence of `length` integers from the model
         h is memory state, seed_ix is seed letter for first time step
         """
         x = np.zeros((vocab_size, 1))
         x[seed_ix] = 1
         ixes = []
-        for t in range(n):
+        for t in range(length):
             h = np.tanh(np.dot(self._Wxh, x) + np.dot(self._Whh, h) + self._bh)
             y = np.dot(self._Why, h) + self._by
             p = np.exp(y) / np.sum(np.exp(y))
