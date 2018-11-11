@@ -41,17 +41,17 @@ class VanillaRNN:
         # Output layer bias
         self._by = np.zeros((vocab_size, 1))
 
-    def _initialize_model_memory(self):
+    def _initialize_Adagrad_memory(self):
         """
-        Initializes model memory.
+        Initializes memory for Adagrad parameter update.
         Memory structures have the same shape as model parameters
         but are initialized to zeros.
         """
-        self._mWxh = np.zeros_like(self._Wxh)
-        self._mWhh = np.zeros_like(self._Whh)
-        self._mWhy = np.zeros_like(self._Why)
-        self._mbh = np.zeros_like(self._bh)
-        self._mby = np.zeros_like(self._by)
+        self._ada_Wxh = np.zeros_like(self._Wxh)
+        self._ada_Whh = np.zeros_like(self._Whh)
+        self._ada_Why = np.zeros_like(self._Why)
+        self._ada_bh = np.zeros_like(self._bh)
+        self._ada_by = np.zeros_like(self._by)
 
     def _apply_loss_function(self, inputs, targets, hprev):
         """
@@ -113,7 +113,7 @@ class VanillaRNN:
         """
         for param, dparam, mem in zip([self._Wxh, self._Whh, self._Why, self._bh, self._by],
                                       [dWxh, dWhh, dWhy, dbh, dby],
-                                      [self._mWxh, self._mWhh, self._mWhy, self._mbh, self._mby]):
+                                      [self._ada_Wxh, self._ada_Whh, self._ada_Why, self._ada_bh, self._ada_by]):
             mem += dparam * dparam
             # Adagrad update
             param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
@@ -121,7 +121,7 @@ class VanillaRNN:
     def fit(self):
         n, p = 0, 0
         self._initialize_model_parameters(vocab_size)
-        self._initialize_model_memory()
+        self._initialize_Adagrad_memory()
         # loss at iteration 0
         smooth_loss = -np.log(1.0 / vocab_size) * self._sequence_length
         while True:
