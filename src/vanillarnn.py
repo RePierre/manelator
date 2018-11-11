@@ -16,31 +16,33 @@ class VanillaRNN:
 
     def __init__(self,
                  encoding,
+                 input_size,
                  hidden_size=100,
                  sequence_length=25,
                  learning_rate=1e-1):
 
         self._encoding = encoding
+        self._input_size = input_size
         self._hidden_size = hidden_size
         self._sequence_length = sequence_length
         self._learning_rate = learning_rate
 
-    def _initialize_model_parameters(self, vocab_size):
+    def _initialize_model_parameters(self):
         """
         Initializes model parameters.
         Weight matrices are initialized to small random values;
         bias vectors are initialized to zeros.
         """
         # Input to hidden matrix
-        self._Wxh = np.random.randn(self._hidden_size, vocab_size) * 0.01
+        self._Wxh = np.random.randn(self._hidden_size, self._input_size) * 0.01
         # Hidden to hidden matrix
         self._Whh = np.random.randn(self._hidden_size, self._hidden_size) * 0.01
         # Hidden to output matrix
-        self._Why = np.random.randn(vocab_size, self._hidden_size) * 0.01
+        self._Why = np.random.randn(self._input_size, self._hidden_size) * 0.01
         # Hidden layer bias
         self._bh = np.zeros((self._hidden_size, 1))
         # Output layer bias
-        self._by = np.zeros((vocab_size, 1))
+        self._by = np.zeros((self._input_size, 1))
 
     def _reset_model_memory(self):
         self._h = np.zeros((self._hidden_size, 1))
@@ -70,7 +72,7 @@ class VanillaRNN:
         # Forward pass
         for t in range(len(inputs)):
             # One-hot encoding of current input
-            xs[t] = np.zeros((vocab_size, 1))
+            xs[t] = np.zeros((self._input_size, 1))
             xs[t][inputs[t]] = 1
             # Compute values for the hidden state
             hs[t] = np.tanh(np.dot(self._Wxh, xs[t]) + np.dot(self._Whh, hs[t - 1]) + self._bh)
@@ -114,15 +116,15 @@ class VanillaRNN:
         h is memory state, seed_ix is seed letter for first time step
         """
         h = np.copy(self._h)
-        x = np.zeros((vocab_size, 1))
+        x = np.zeros((self._input_size, 1))
         x[seed_ix] = 1
         ixes = []
         for t in range(length):
             h = np.tanh(np.dot(self._Wxh, x) + np.dot(self._Whh, h) + self._bh)
             y = np.dot(self._Why, h) + self._by
             p = np.exp(y) / np.sum(np.exp(y))
-            ix = np.random.choice(range(vocab_size), p=p.ravel())
-            x = np.zeros((vocab_size, 1))
+            ix = np.random.choice(range(self._input_size), p=p.ravel())
+            x = np.zeros((self._input_size, 1))
             x[ix] = 1
             ixes.append(ix)
         return ixes
@@ -150,10 +152,10 @@ class VanillaRNN:
             The frequency, in number of epochs, in which to sample from the model.
         """
         n, p = 0, 0
-        self._initialize_model_parameters(vocab_size)
+        self._initialize_model_parameters()
         self._initialize_Adagrad_memory()
         # loss at iteration 0
-        smooth_loss = -np.log(1.0 / vocab_size) * self._sequence_length
+        smooth_loss = -np.log(1.0 / self._input_size) * self._sequence_length
         while True:
             # prepare inputs (we're sweeping from left to right in steps seq_length long)
             if p + self._sequence_length + 1 >= len(data) or n == 0:
@@ -184,5 +186,5 @@ class VanillaRNN:
 
 
 if __name__ == '__main__':
-    rnn = VanillaRNN(Encoding(chars))
+    rnn = VanillaRNN(Encoding(chars), vocab_size)
     rnn.fit()
