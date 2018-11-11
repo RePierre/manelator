@@ -89,7 +89,7 @@ class VanillaRNN:
             np.clip(dparam, -5, 5, out=dparam)  # clip to mitigate exploding gradients
         return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
 
-    def _sample_text(self, h, seed_ix, n):
+    def _sample_sequence(self, h, seed_ix, n):
         """
         Sample a sequence of integers from the model
         h is memory state, seed_ix is seed letter for first time step
@@ -134,7 +134,7 @@ class VanillaRNN:
 
             # sample from the model now and then
             if n % 100 == 0:
-                sample_ix = self._sample_text(hprev, inputs[0], 200)
+                sample_ix = self._sample_sequence(hprev, inputs[0], 200)
                 txt = ''.join(ix_to_char[ix] for ix in sample_ix)
                 print('----\n {} \n----'.format(txt))
 
