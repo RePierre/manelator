@@ -110,10 +110,16 @@ class VanillaRNN:
         self._h = hs[len(inputs) - 1]
         return loss, dWxh, dWhh, dWhy, dbh, dby
 
-    def _sample_sequence(self, seed_ix, length):
+    def generate_sequence(self, seed_ix, length):
         """
-        Sample a sequence of `length` integers from the model
-        h is memory state, seed_ix is seed letter for first time step
+        Generate a sequence of `length` integers from the model.
+
+        Parameters:
+        ----------
+        seed_ix: int
+            Index of the seed letter for the sequence to be generated.
+        length: int
+            Number of items in the sequence to generate
         """
         h = np.copy(self._h)
         x = np.zeros((self._input_size, 1))
@@ -170,7 +176,7 @@ class VanillaRNN:
 
             # Sample from the model at sample_frequency intervals
             if n % sample_frequency == 0:
-                sample = self._sample_sequence(inputs[0], sample_size)
+                sample = self.generate_sequence(inputs[0], sample_size)
                 print('----\n {} \n----'.format(self._encoding.decode(sample)))
 
             # Forward sequence_length characters through the net and fetch gradient
