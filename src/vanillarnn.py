@@ -118,7 +118,7 @@ class VanillaRNN:
             # Adagrad update
             param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
 
-    def fit(self):
+    def fit(self, sample_size=200):
         n, p = 0, 0
         self._initialize_model_parameters(vocab_size)
         self._initialize_Adagrad_memory()
@@ -134,7 +134,7 @@ class VanillaRNN:
 
             # sample from the model now and then
             if n % 100 == 0:
-                sample_ix = self._sample_sequence(hprev, inputs[0], 200)
+                sample_ix = self._sample_sequence(hprev, inputs[0], sample_size)
                 txt = ''.join(ix_to_char[ix] for ix in sample_ix)
                 print('----\n {} \n----'.format(txt))
 
