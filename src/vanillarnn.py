@@ -140,12 +140,14 @@ class VanillaRNN:
             # Adagrad update
             param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
 
-    def fit(self, sample_size=200, sample_frequency=100):
+    def fit(self, num_iterations=100000, sample_size=200, sample_frequency=100):
         """
         Fits the model to the training data.
 
         Parameters:
         ----------
+        num_iterations: int, optional
+            Number of training iterations.
         sample_size: int, optional
             The length of the sampled sequence from the model.
         sample_frequency: int, optional
@@ -154,35 +156,35 @@ class VanillaRNN:
         n, p = 0, 0
         self._initialize_model_parameters()
         self._initialize_Adagrad_memory()
-        # loss at iteration 0
+        # Loss at iteration 0
         smooth_loss = -np.log(1.0 / self._input_size) * self._sequence_length
-        while True:
-            # prepare inputs (we're sweeping from left to right in steps seq_length long)
+        while n < num_iterations:
             if p + self._sequence_length + 1 >= len(data) or n == 0:
                 self._reset_model_memory()
-                p = 0  # go from start of data
+                p = 0  # Go from start of data
 
             inputs = data[p:p + self._sequence_length]
             inputs = self._encoding.encode(inputs)
             targets = data[p + 1:p + self._sequence_length + 1]
             targets = self._encoding.encode(targets)
 
-            # sample from the model now and then
-            if n % 100 == 0:
-                sample_ix = self._sample_sequence(inputs[0], sample_size)
-                print('----\n {} \n----'.format(self._encoding.decode(sample_ix)))
+            # Sample from the model at sample_frequency intervals
+            if n % sample_frequency == 0:
+                sample = self._sample_sequence(inputs[0], sample_size)
+                print('----\n {} \n----'.format(self._encoding.decode(sample)))
 
-            # forward seq_length characters through the net and fetch gradient
+            # Forward sequence_length characters through the net and fetch gradient
             loss, dWxh, dWhh, dWhy, dbh, dby = self._apply_loss_function(inputs, targets)
             smooth_loss = smooth_loss * 0.999 + loss * 0.001
+
             # Print progress
             if n % 100 == 0:
-                print('iter {}, loss: {}'.format(n, smooth_loss))
+                print('Iteration {}, loss: {}'.format(n, smooth_loss))
 
             self._update_model_parameters(dWxh, dWhh, dWhy, dbh, dby)
 
-            p += self._sequence_length  # move data pointer
-            n += 1  # iteration counter
+            p += self._sequence_length
+            n += 1
 
 
 if __name__ == '__main__':
