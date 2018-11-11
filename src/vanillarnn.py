@@ -41,6 +41,9 @@ class VanillaRNN:
         # Output layer bias
         self._by = np.zeros((vocab_size, 1))
 
+    def _reset_model_memory(self):
+        self._h = np.zeros((self._hidden_size, 1))
+
     def _initialize_Adagrad_memory(self):
         """
         Initializes memory for Adagrad parameter update.
@@ -53,47 +56,63 @@ class VanillaRNN:
         self._ada_bh = np.zeros_like(self._bh)
         self._ada_by = np.zeros_like(self._by)
 
-    def _apply_loss_function(self, inputs, targets, hprev):
+    def _apply_loss_function(self, inputs, targets):
         """
-        inputs,targets are both list of integers.
-        hprev is Hx1 array of initial hidden state
-        returns the loss, gradients on model parameters, and last hidden state
+        Calculates cross-entropy loss and updates model hidden state.
+        `inputs`, `targets` are both list of integers.
+        Returns the loss and the gradients on model parameters.
         """
         xs, hs, ys, ps = {}, {}, {}, {}
-        hs[-1] = np.copy(hprev)
+        hs[-1] = np.copy(self._h)
         loss = 0
-        # forward pass
+
+        # Forward pass
         for t in range(len(inputs)):
-            xs[t] = np.zeros((vocab_size, 1))  # encode in 1-of-k representation
+            # One-hot encoding of current input
+            xs[t] = np.zeros((vocab_size, 1))
             xs[t][inputs[t]] = 1
-            hs[t] = np.tanh(np.dot(self._Wxh, xs[t]) + np.dot(self._Whh, hs[t - 1]) + self._bh)  # hidden state
-            ys[t] = np.dot(self._Why, hs[t]) + self._by  # unnormalized log probabilities for next chars
-            ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t]))  # probabilities for next chars
-            loss += -np.log(ps[t][targets[t], 0])  # softmax (cross-entropy loss)
-        # backward pass: compute gradients going backwards
+            # Compute values for the hidden state
+            hs[t] = np.tanh(np.dot(self._Wxh, xs[t]) + np.dot(self._Whh, hs[t - 1]) + self._bh)
+            # Calculate unnormalized log probabilities for the next chars
+            ys[t] = np.dot(self._Why, hs[t]) + self._by
+            # Calculate probabilities fo the next chars
+            ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t]))
+            # Update cross-entropy (softmax) loss
+            loss += -np.log(ps[t][targets[t], 0])
+
+        # Backward pass: compute gradients going backwards
         dWxh, dWhh, dWhy = np.zeros_like(self._Wxh), np.zeros_like(self._Whh), np.zeros_like(self._Why)
         dbh, dby = np.zeros_like(self._bh), np.zeros_like(self._by)
         dhnext = np.zeros_like(hs[0])
         for t in reversed(range(len(inputs))):
             dy = np.copy(ps[t])
-            dy[targets[t]] -= 1  # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here
+            # Back-propagate into y by specifying the direction
+            # which leads to loss decrease
+            dy[targets[t]] -= 1
             dWhy += np.dot(dy, hs[t].T)
             dby += dy
-            dh = np.dot(self._Why.T, dy) + dhnext  # backprop into h
-            dhraw = (1 - hs[t] * hs[t]) * dh  # backprop through tanh nonlinearity
+            # Back-propagate into h
+            dh = np.dot(self._Why.T, dy) + dhnext
+            # Back-propagate through tanh nonlinearity
+            dhraw = (1 - hs[t] * hs[t]) * dh
             dbh += dhraw
             dWxh += np.dot(dhraw, xs[t].T)
             dWhh += np.dot(dhraw, hs[t - 1].T)
             dhnext = np.dot(self._Whh.T, dhraw)
-        for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
-            np.clip(dparam, -5, 5, out=dparam)  # clip to mitigate exploding gradients
-        return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs) - 1]
 
-    def _sample_sequence(self, h, seed_ix, length):
+        # Apply clipping to avoid exploding gradients
+        for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
+            np.clip(dparam, -5, 5, out=dparam)
+
+        self._h = hs[len(inputs) - 1]
+        return loss, dWxh, dWhh, dWhy, dbh, dby
+
+    def _sample_sequence(self, seed_ix, length):
         """
         Sample a sequence of `length` integers from the model
         h is memory state, seed_ix is seed letter for first time step
         """
+        h = np.copy(self._h)
         x = np.zeros((vocab_size, 1))
         x[seed_ix] = 1
         ixes = []
@@ -127,19 +146,19 @@ class VanillaRNN:
         while True:
             # prepare inputs (we're sweeping from left to right in steps seq_length long)
             if p + self._sequence_length + 1 >= len(data) or n == 0:
-                hprev = np.zeros((self._hidden_size, 1))  # reset RNN memory
+                self._reset_model_memory()
                 p = 0  # go from start of data
             inputs = [char_to_ix[ch] for ch in data[p:p + self._sequence_length]]
             targets = [char_to_ix[ch] for ch in data[p + 1:p + self._sequence_length + 1]]
 
             # sample from the model now and then
             if n % 100 == 0:
-                sample_ix = self._sample_sequence(hprev, inputs[0], sample_size)
+                sample_ix = self._sample_sequence(inputs[0], sample_size)
                 txt = ''.join(ix_to_char[ix] for ix in sample_ix)
                 print('----\n {} \n----'.format(txt))
 
             # forward seq_length characters through the net and fetch gradient
-            loss, dWxh, dWhh, dWhy, dbh, dby, hprev = self._apply_loss_function(inputs, targets, hprev)
+            loss, dWxh, dWhh, dWhy, dbh, dby = self._apply_loss_function(inputs, targets)
             smooth_loss = smooth_loss * 0.999 + loss * 0.001
             # Print progress
             if n % 100 == 0:
