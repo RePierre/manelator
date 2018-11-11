@@ -2,9 +2,9 @@ import numpy as np
 from encoding import Encoding
 
 # data I/O
-data = open('scrapper.py', 'r').read()  # should be simple plain text file
-chars = list(set(data))
-data_size, vocab_size = len(data), len(chars)
+corpus = open('scrapper.py', 'r').read()  # should be simple plain text file
+chars = list(set(corpus))
+data_size, vocab_size = len(corpus), len(chars)
 print('data has {} characters, {} unique.'.format(data_size, vocab_size))
 
 np.random.seed(0)
@@ -146,12 +146,14 @@ class VanillaRNN:
             # Adagrad update
             param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
 
-    def fit(self, num_iterations=100000, sample_size=200, sample_frequency=100):
+    def fit(self, data, num_iterations=100000, sample_size=200, sample_frequency=100):
         """
         Fits the model to the training data.
 
         Parameters:
         ----------
+        data: list
+            The sequence of characters on which to train the model.
         num_iterations: int, optional
             Number of training iterations.
         sample_size: int, optional
@@ -195,4 +197,4 @@ class VanillaRNN:
 
 if __name__ == '__main__':
     rnn = VanillaRNN(Encoding(chars), vocab_size)
-    rnn.fit()
+    rnn.fit(corpus)
