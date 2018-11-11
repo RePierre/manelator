@@ -1,13 +1,4 @@
 import numpy as np
-from encoding import Encoding
-
-# data I/O
-corpus = open('scrapper.py', 'r').read()  # should be simple plain text file
-chars = list(set(corpus))
-data_size, vocab_size = len(corpus), len(chars)
-print('data has {} characters, {} unique.'.format(data_size, vocab_size))
-
-np.random.seed(0)
 
 
 class VanillaRNN:
@@ -193,8 +184,3 @@ class VanillaRNN:
 
             p += self._sequence_length
             n += 1
-
-
-if __name__ == '__main__':
-    rnn = VanillaRNN(Encoding(chars), vocab_size)
-    rnn.fit(corpus)

@@ -1,6 +1,9 @@
+import numpy as np
 from argparse import ArgumentParser
 from encoding import Encoding
 from vanillarnn import VanillaRNN
+
+np.random.seed(0)
 
 
 def read_data(input_file):
@@ -14,7 +17,10 @@ def run(args):
     data_size, vocab_size = len(data), len(chars)
     print("Data has {} characters; {} unique.".format(data_size, vocab_size))
     e = Encoding(chars)
-    model = VanillaRNN(vocab_size, args.hidden_size, args.sequence_length, args.learning_rate, e)
+    model = VanillaRNN(encoding=e, input_size=vocab_size,
+                       hidden_size=args.hidden_size,
+                       sequence_length=args.sequence_length,
+                       learning_rate=args.learning_rate)
     model.fit(data)
 
 
