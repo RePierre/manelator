@@ -1,12 +1,11 @@
 import numpy as np
+from encoding import Encoding
 
 # data I/O
 data = open('scrapper.py', 'r').read()  # should be simple plain text file
 chars = list(set(data))
 data_size, vocab_size = len(data), len(chars)
 print('data has {} characters, {} unique.'.format(data_size, vocab_size))
-char_to_ix = {ch: i for i, ch in enumerate(chars)}
-ix_to_char = {i: ch for i, ch in enumerate(chars)}
 
 np.random.seed(0)
 
@@ -16,10 +15,12 @@ class VanillaRNN:
     """
 
     def __init__(self,
+                 encoding,
                  hidden_size=100,
                  sequence_length=25,
                  learning_rate=1e-1):
 
+        self._encoding = encoding
         self._hidden_size = hidden_size
         self._sequence_length = sequence_length
         self._learning_rate = learning_rate
@@ -137,7 +138,17 @@ class VanillaRNN:
             # Adagrad update
             param += -self._learning_rate * dparam / np.sqrt(mem + 1e-8)
 
-    def fit(self, sample_size=200):
+    def fit(self, sample_size=200, sample_frequency=100):
+        """
+        Fits the model to the training data.
+
+        Parameters:
+        ----------
+        sample_size: int, optional
+            The length of the sampled sequence from the model.
+        sample_frequency: int, optional
+            The frequency, in number of epochs, in which to sample from the model.
+        """
         n, p = 0, 0
         self._initialize_model_parameters(vocab_size)
         self._initialize_Adagrad_memory()
@@ -148,14 +159,16 @@ class VanillaRNN:
             if p + self._sequence_length + 1 >= len(data) or n == 0:
                 self._reset_model_memory()
                 p = 0  # go from start of data
-            inputs = [char_to_ix[ch] for ch in data[p:p + self._sequence_length]]
-            targets = [char_to_ix[ch] for ch in data[p + 1:p + self._sequence_length + 1]]
+
+            inputs = data[p:p + self._sequence_length]
+            inputs = self._encoding.encode(inputs)
+            targets = data[p + 1:p + self._sequence_length + 1]
+            targets = self._encoding.encode(targets)
 
             # sample from the model now and then
             if n % 100 == 0:
                 sample_ix = self._sample_sequence(inputs[0], sample_size)
-                txt = ''.join(ix_to_char[ix] for ix in sample_ix)
-                print('----\n {} \n----'.format(txt))
+                print('----\n {} \n----'.format(self._encoding.decode(sample_ix)))
 
             # forward seq_length characters through the net and fetch gradient
             loss, dWxh, dWhh, dWhy, dbh, dby = self._apply_loss_function(inputs, targets)
@@ -171,5 +184,5 @@ class VanillaRNN:
 
 
 if __name__ == '__main__':
-    rnn = VanillaRNN()
+    rnn = VanillaRNN(Encoding(chars))
     rnn.fit()
