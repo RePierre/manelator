@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from encoding import Encoding
 from vanillarnn import VanillaRNN
 
-np.random.seed(0)
+np.random.seed(2018)
 
 
 def read_data(input_file):
