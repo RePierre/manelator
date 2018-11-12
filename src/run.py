@@ -1,3 +1,4 @@
+import datetime
 import numpy as np
 from argparse import ArgumentParser
 from encoding import Encoding
@@ -11,6 +12,15 @@ def read_data(input_file):
     return data
 
 
+def get_output_file(args):
+    return 'ni{}-hs{}-is{}-lr{}-{}.txt'.format(
+        args.num_iterations,
+        args.hidden_size,
+        args.sequence_length,
+        args.learning_rate,
+        datetime.datetime.now().strftime('%Y-%m-%d-%H%M'))
+
+
 def run(args):
     data = read_data(args.corpus_file)
     chars = list(set(data))
@@ -22,6 +32,12 @@ def run(args):
                        sequence_length=args.sequence_length,
                        learning_rate=args.learning_rate)
     model.fit(data, num_iterations=args.num_iterations)
+    with open(get_output_file(args), 'w') as f:
+        for _ in range(args.num_samples):
+            seed = np.random.randint(low=0, high=vocab_size)
+            seq = model.generate_sequence(seed, args.sample_size)
+            f.write(e.decode(seq))
+            f.write('\n\n')
 
 
 def parse_arguments():
@@ -32,8 +48,23 @@ def parse_arguments():
     parser.add_argument('--num-iterations',
                         required=False,
                         type=int,
-                        default=100000,
+                        default=500000,
                         help='Number of training iterations.')
+    parser.add_argument('--num-samples',
+                        required=False,
+                        default=10,
+                        type=int,
+                        help='Number of text samples to generate.')
+    parser.add_argument('--sample-size',
+                        required=False,
+                        type=int,
+                        default=200,
+                        help='The length of a text sample.')
+    parser.add_argument('--sample-frequency',
+                        required=False,
+                        type=int,
+                        default=100,
+                        help='The frequency, in number of epochs, in which to sample from the model during training.')
     parser.add_argument('--hidden-size',
                         required=False,
                         type=int,
