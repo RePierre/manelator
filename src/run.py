@@ -21,7 +21,7 @@ def run(args):
                        hidden_size=args.hidden_size,
                        sequence_length=args.sequence_length,
                        learning_rate=args.learning_rate)
-    model.fit(data)
+    model.fit(data, num_iterations=args.num_iterations)
 
 
 def parse_arguments():
@@ -29,6 +29,11 @@ def parse_arguments():
     parser.add_argument('--corpus-file',
                         required=True,
                         help='The name of the file containing training corpus.')
+    parser.add_argument('--num-iterations',
+                        required=False,
+                        type=int,
+                        default=100000,
+                        help='Number of training iterations.')
     parser.add_argument('--hidden-size',
                         required=False,
                         type=int,
