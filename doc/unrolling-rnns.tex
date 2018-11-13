@@ -41,6 +41,14 @@
   \end{columns}
 \end{frame}
 \begin{frame}
+  \frametitle{Using convolutions on sequential data}
+  \begin{itemize}
+    \item Time-delay networks use convolutions across a temporal sequence by applying the same kernel at each time step.
+    \item Although this approach allows for parameter sharing across time, \textit{it is shallow}.
+    \item The operation only captures a small number of neighboring members of the input.
+  \end{itemize}
+\end{frame}
+\begin{frame}
   \frametitle{Recurrent Neural Networks}
   \begin{itemize}
     \item Are specialized for processing a sequence of values \cite{goodfellow-et-al-2016}
