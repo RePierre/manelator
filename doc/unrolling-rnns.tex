@@ -41,7 +41,19 @@
   \end{columns}
 \end{frame}
 \begin{frame}
-  \frametitle{Using convolutions on sequential data}
+  \frametitle{Working with data of variable size}
+
+\end{frame}
+\begin{frame}
+  \frametitle{Parameter sharing}
+  \begin{itemize}
+    \item Allows generalization over samples of different lengths.
+    \item Avoids overfitting the sample size from the training set.
+    \item Reduces the number of parameters that the model has to learn.
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Using convolutions on sequential data \cite{goodfellow-et-al-2016}}
   \begin{itemize}
     \item Time-delay networks use convolutions across a temporal sequence by applying the same kernel at each time step.
     \item Although this approach allows for parameter sharing across time, \textit{it is shallow}.
