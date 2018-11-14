@@ -45,7 +45,11 @@
 \end{frame}
 \begin{frame}
   \frametitle{Working with data of variable size}
-
+  \begin{itemize}
+    \item There are domains (Natural Language Processing for example) where the data samples don't have a fixed size; e.g. \textit{documents} are a \textit{sequence of tokens}. \pause
+    \item Furthermore, some tasks require finding temporal patterns/dependencies or patterns/dependencies distributed across some projection of time. \pause
+    \item Detecting such patterns/dependencies in a computationally feasible way requires parameter sharing -- a feature which Convolutional Networks are lacking.
+  \end{itemize}
 \end{frame}
 \begin{frame}
   \frametitle{Parameter sharing}
