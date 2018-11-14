@@ -103,7 +103,38 @@
     \end{column}
   \end{columns}
 \end{frame}
-
+\begin{frame}
+  \frametitle{Unrolling computational graph}
+  \begin{columns}
+    \begin{column}{0.3\textwidth}
+      \begin{center}
+        \includegraphics[height=0.6\textheight]{../img/rnn-comp-graph.png}
+      \end{center}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      \begin{enumerate}
+        \item The problem with recurrent expressions is that they introduce cycles in the computational graph.
+        \item In order to avoid this, the computational graphs of Recurrent Networks are transformed through a process called \textbf{unrolling} or \textbf{unfolding}.
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}
+  \frametitle{Unrolling computational graph}
+  This transformation implies copying over a number of times the input, hidden and output nodes and connecting the hidden nodes between them.
+  \begin{center}
+    \includegraphics[height=0.6\textheight]{../img/rnn-unrolled.png}
+  \end{center}
+\end{frame}
+\begin{frame}
+  \frametitle{Unrolling computational graph}
+  The unrolling process introduces two major advantages \cite{goodfellow-et-al-2016}:
+  \begin{enumerate}
+    \item The input is interpreted as transitions from one fixed size state to another thus the sequence length does not influence neither the model nor the parameter size
+    \item \textit{Same} transition function with same parameters can be applied at each step in the sequence
+  \end{enumerate}
+  Also, unrolling introduces out-of-the box mini-batching.
+\end{frame}
 \begin{frame}[allowframebreaks]
   \frametitle{Flavors of Recurrent Networks \cite{rnn-efectiveness}}
   \begin{columns}

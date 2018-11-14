@@ -1,0 +1,35 @@
+digraph unrolled{
+	graph[dpi=600]
+	rankdir=BT
+	node[shape=circle, penwidth=2]
+	edge[penwidth=2]
+
+	{
+		rank=same
+		x1[group=input, label=<x<sup>(t-1)</sup>>]
+		x2[group=input, label=<x<sup>(t)</sup>>]
+		x3[group=input, label=<x<sup>(t+1)</sup>>]
+	}
+	{
+		rank=same
+		h0[group=hidden, style=dashed, label=<h<sup>(...)</sup>>]
+		h1[group=hidden, label=<h<sup>(t-1)</sup>>]
+		h2[group=hidden, label=<h<sup>(t)</sup>>]
+		h3[group=hidden, label=<h<sup>(t+1)</sup>>]
+		h4[group=hidden, style=dashed, label=<h<sup>(...)</sup>>]
+	}
+	{
+		rank=same
+		y1[group=output, label=<y<sup>(t-1)</sup>>]
+		y2[group=output, label=<y<sup>(t)</sup>>]
+		y3[group=output, label=<y<sup>(t+1)</sup>>]
+	}
+
+	x1->h1
+	x2->h2
+	x3->h3
+	h0->h1->h2->h3->h4
+	h1->y1
+	h2->y2
+	h3->y3
+}
