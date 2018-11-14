@@ -69,6 +69,41 @@
     \item Are a special case of \textbf{Recursive Neural Networks} which, in turn, are a separate topic (maybe for another presentation).
   \end{itemize}
 \end{frame}
+\begin{frame}
+  \frametitle{Computational Graph for Recurrent Networks}
+  \begin{columns}
+    \begin{column}{0.3\textwidth}
+      \begin{center}
+        \includegraphics[height=0.6\textheight]{../img/rnn-comp-graph.png}
+      \end{center}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      The theoretical computational graph of a Recurrent Network consists of two parts:
+      \begin{enumerate}
+        \item The \textit{input} node which receives the current element of the sequence \(x^{(t)}\)
+        \item The \textit{hidden} node which gets activated by both \(x^{(t)}\) and hidden node state from previous step \(h^{(t-1)}\)
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}
+  \frametitle{Computational Graph for Recurrent Networks}
+  \begin{columns}
+    \begin{column}{0.3\textwidth}
+      \begin{center}
+        \includegraphics[height=0.6\textheight]{../img/recurrent-nn.png}
+      \end{center}
+    \end{column}
+    \begin{column}{0.7\textwidth}
+      In practice we're also interested in outputting some values from the network (e.g. the probability of \(w\) being the next word in the generated sequence) thus we add extra nodes which compute:
+      \begin{itemize}
+        \item The output for the current element in the sequence
+        \item The \textit{loss} value of the output when in training etc.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}[allowframebreaks]
   \frametitle{Flavors of Recurrent Networks \cite{rnn-efectiveness}}
   \begin{columns}
