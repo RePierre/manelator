@@ -200,6 +200,41 @@
   \end{columns}
 \end{frame}
 \begin{frame}[allowframebreaks]
+  \frametitle{An example}
+  Character-level language model with \(tanh\) activation and \(softmax\) normalization \cite{rnn-gist} \cite{goodfellow-et-al-2016}.
+  \begin{itemize}
+    \item \textbf{Forward pass}
+      \begin{enumerate}
+        \item Start with some initial state \(h_0\); usually initialized to zeroes
+        \item For each \(x^{(t)}\) in the mini-batch calculate:
+          \begin{itemize}
+            \item Values for the hidden layer
+            \item (Normalized) Output probabilities
+            \item Loss
+          \end{itemize}
+        \end{enumerate}
+    \framebreak
+  \item \textbf{Backward pass} -- Start from the end of the sequence and back-propagate into each node
+    \begin{enumerate}
+      \item Back-propagate into \(y\)
+      \item Back-propagate into \(h\)
+      \item Back-propagate through \(tanh\)
+      \end{enumerate}
+  \framebreak
+  \item \textbf{Gradient clipping}
+    \begin{itemize}
+      \item The recurrence formula is basically an exponentiation of \(W_{xh}\) matrix
+      \item Thus when its elements are small they risk \textit{vanishing} and when they are large they may \textit{explode}
+      \item A common practice to avoid this is to apply \textbf{clipping}
+    \end{itemize}
+  \framebreak
+  \item \textbf{Parameter update}
+    \begin{itemize}
+      \item Update model parameters according to the optimization technique
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+\begin{frame}[allowframebreaks]
   \frametitle{References}
   \bibliographystyle{amsalpha}
   \bibliography{unrolling-rnns}
