@@ -17,19 +17,16 @@ The experiment part of the project was to see whether the vanilla RNN can be tra
 The [vanilla RNN](./src/vanillarnn.py) from the presentation was trained with 9 hyperparameter configurations as described in table below. Each training cycle ended at 1.000.000 iterations over a sequence of 25 characters.
 
 | Run Id | Hidden size | Learning rate |      Loss |
-|--------+-------------+---------------+-----------|
+|--------|-------------|---------------|-----------|
 |      1 |         100 |           0.1 |       N/A |
 |      2 |         100 |          0.01 | 44.355101 |
 |      3 |         100 |         0.001 | 59.384402 |
-|--------+-------------+---------------+-----------|
 |      4 |         250 |           0.1 | 48.762288 |
 |      5 |         250 |          0.01 | 37.229775 |
 |      6 |         250 |         0.001 | 55.494079 |
-|--------+-------------+---------------+-----------|
 |      7 |         500 |           0.1 | 52.587987 |
 |      8 |         500 |          0.01 | 27.412387 |
 |      9 |         500 |         0.001 | 53.266636 |
-|--------+-------------+---------------+-----------|
 
 As can be seen from results, the model got stuck in a local minimum, the best results being achieved by run `8` with `hidden_size=500` and `learning_rate=0.01`.
 
