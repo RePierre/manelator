@@ -1,0 +1,25 @@
+digraph one_to_many{
+	graph[dpi=600];
+	rankdir=BT;
+	node[shape=circle, penwidth=2]
+	edge[penwidth=2]
+	x
+	{
+		rank=same
+		y1[group=output]
+		y2[group=output]
+		y3[group=output]
+	}
+	{
+		rank=same
+		h1[group=hidden]
+		h2[group=hidden]
+		h3[group=hidden]
+	}
+
+	x->h1
+	h1->h2->h3
+	h1->y1
+	h2->y2
+	h3->y3
+}

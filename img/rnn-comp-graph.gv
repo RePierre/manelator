@@ -1,0 +1,11 @@
+digraph recurrent_nn_graph{
+	graph[dpi=600];
+	rankdir=BT;
+	node[shape=circle, penwidth=2]
+	edge[penwidth=2]
+	x[label="x"]
+	h[label="h"]
+
+	x->h
+	h->h
+}

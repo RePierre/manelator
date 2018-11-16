@@ -1,0 +1,23 @@
+digraph many_to_one{
+	graph[dpi=600];
+	rankdir=BT;
+	node[shape=circle, penwidth=2]
+	edge[penwidth=2]
+	{
+		rank=same
+		x1[group=input]
+		x2[group=input]
+		x3[group=input]
+	}
+	{
+		rank=same
+		h1[group=hidden]
+		h2[group=hidden]
+		h3[group=hidden]
+	}
+	x1->h1
+	x2->h2
+	x3->h3
+	h1->h2->h3
+	h3->y
+}
